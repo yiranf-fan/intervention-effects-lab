@@ -1,2 +1,2 @@
 line-length = 100
-select = ["E", "F"]  # basic errors/flake8-style
+lint.select = ["E", "F"]  # basic errors/flake8-style

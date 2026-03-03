@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    container_name: experiment-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data  # share DuckDB events file
+    environment:
+      - PYTHONUNBUFFERED=1

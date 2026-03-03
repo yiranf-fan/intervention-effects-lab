@@ -10,3 +10,5 @@ venv/
 .vscode/
 *.log
 .DS_Store
+*.duckdb
+data/
