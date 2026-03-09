@@ -17,3 +17,12 @@ def test_power_endpoint():
     assert "required_sample_size" in data
     assert isinstance(data["required_sample_size"], int)
     assert data["required_sample_size"] > 0
+
+
+def test_power_endpoint_bad_input():
+    payload = {
+        "baseline_rate": 0.95,
+        "target_effect": 0.1,
+    }
+    response = client.post("/power", json=payload)
+    assert response.status_code == 400

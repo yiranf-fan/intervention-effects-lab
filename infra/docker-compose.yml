@@ -1,14 +1,38 @@
-version: "3.9"
-
 services:
   api:
     build:
       context: ..
       dockerfile: infra/Dockerfile.api
     container_name: experiment-api
+    working_dir: /app
     ports:
       - "8000:8000"
     volumes:
       - ../data:/app/data  # share DuckDB events file
     environment:
-      - PYTHONUNBUFFERED=1
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: "/app"
+      EXPERIMENT_CACHE_ENABLED: "true"
+      EXPERIMENT_CACHE_MAX_ITEMS: "64"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dashboard
+    container_name: experiment-dashboard
+    working_dir: /app
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    environment:
+      API_BASE: "http://api:8000"
+    restart: unless-stopped

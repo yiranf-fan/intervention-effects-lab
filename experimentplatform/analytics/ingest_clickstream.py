@@ -1,5 +1,4 @@
 from pathlib import Path
-import importlib
 import duckdb
 import pandas as pd
 

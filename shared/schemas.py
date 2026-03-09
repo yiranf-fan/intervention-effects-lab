@@ -30,4 +30,5 @@ class MetricRequest(BaseModel):
     metric: str  # e.g. "conversion_rate", "revenue_per_user"
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
+    use_cuped: bool = False
     segment_filters: Optional[Dict[str, Any]] = None  # e.g. {"region": "NA"}

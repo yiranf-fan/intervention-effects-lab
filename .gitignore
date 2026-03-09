@@ -11,4 +11,4 @@ venv/
 *.log
 .DS_Store
 *.duckdb
-data/
+data/raw/
