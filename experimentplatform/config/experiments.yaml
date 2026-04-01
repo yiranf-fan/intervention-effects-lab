@@ -1,0 +1,70 @@
+experiments:
+  - experiment_id: exp_email
+    domain: tech
+    owner: growth_ds@company.example
+    hypothesis: "Sending tailored marketing emails increases conversion rate without harming revenue per user."
+    primary_metric: conversion_rate
+    guardrail_metrics:
+      - name: revenue_per_user
+        min_value: -0.05
+        description: "Avoid meaningful revenue-per-user degradation in treatment."
+    min_run_time_days: 14
+    min_sample_size: 20000
+    stopping_rule_note: "Fixed-horizon readout; avoid repeated peeking before minimum sample."
+    expected_split:
+      "No E-Mail": 0.3333
+      "Mens E-Mail": 0.3333
+      "Womens E-Mail": 0.3334
+    default_control_variant: "No E-Mail"
+    default_treatment_variant: "Mens E-Mail"
+
+  - experiment_id: exp_reminder
+    domain: health
+    owner: health_analytics@company.example
+    hypothesis: "Care reminders improve adherence events without worsening downstream utilization guardrails."
+    primary_metric: conversion_rate
+    guardrail_metrics:
+      - name: revenue_per_user
+        min_value: -0.10
+        description: "Placeholder financial-utilization proxy guardrail."
+    min_run_time_days: 7
+    min_sample_size: 200
+    stopping_rule_note: "Run at least one full week to capture weekday/weekend behavior."
+    expected_split:
+      control: 0.5
+      reminder: 0.5
+
+  - experiment_id: exp_reminder_30_day
+    domain: health
+    owner: health_analytics@company.example
+    hypothesis: "Thirty-day reminder flow improves conversion-like adherence events without negative guardrail drift."
+    primary_metric: conversion_rate
+    guardrail_metrics:
+      - name: revenue_per_user
+        min_value: -0.10
+        description: "Proxy guardrail for downstream utilization costs."
+    min_run_time_days: 7
+    min_sample_size: 200
+    stopping_rule_note: "Synthetic health experiment; validate assignment and metric mapping before production use."
+    expected_split:
+      control: 0.5
+      reminder: 0.5
+
+  - experiment_id: health_exp_reminder_30d
+    domain: health
+    owner: health_analytics@company.example
+    hypothesis: "Reminder outreach reduces 30-day readmission rates while not increasing length of stay."
+    primary_metric: readmission_30d_rate
+    guardrail_metrics:
+      - name: length_of_stay
+        max_value: 0.05
+        description: "Do not allow >5% increase in mean length of stay."
+      - name: followup_completion_rate
+        min_value: -0.02
+        description: "Do not materially degrade follow-up completion rates."
+    min_run_time_days: 30
+    min_sample_size: 4000
+    stopping_rule_note: "Synthetic health journey experiment with fixed-horizon decisioning."
+    expected_split:
+      control: 0.5
+      reminder: 0.5

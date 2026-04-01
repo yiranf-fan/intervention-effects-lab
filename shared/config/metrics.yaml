@@ -1,0 +1,42 @@
+metrics:
+  - name: conversion_rate
+    description: "Share of users with at least one conversion-style event in analysis window."
+    owner: experimentation_ds
+    dataset: events
+    denominator_definition: "Distinct users in the selected experiment/variant and date window."
+    sql_example: "SUM(CASE WHEN event_name='conversion' THEN 1 ELSE 0 END) > 0 per user"
+
+  - name: revenue_per_user
+    description: "Average summed numeric event value per user in analysis window."
+    owner: experimentation_ds
+    dataset: events
+    denominator_definition: "Distinct users in the selected experiment/variant and date window."
+    sql_example: "SUM(COALESCE(value,0.0)) per user"
+
+  - name: lift_conversion
+    description: "Relative lift in conversion rate vs control for decision reporting."
+    owner: growth_analytics
+    dataset: derived
+    denominator_definition: "Control conversion rate in matched analysis window."
+    sql_example: "(treatment_conversion - control_conversion) / control_conversion"
+
+  - name: readmission_30d_rate
+    description: "Share of patients with at least one `readmission_30d` event in analysis window."
+    owner: health_analytics
+    dataset: events
+    denominator_definition: "Distinct patients in selected experiment arm and analysis window."
+    sql_example: "SUM(CASE WHEN event_name='readmission_30d' THEN 1 ELSE 0 END) > 0 per patient"
+
+  - name: length_of_stay
+    description: "Average patient length of stay captured via `length_of_stay` event value (days)."
+    owner: health_analytics
+    dataset: events
+    denominator_definition: "Distinct patients in selected experiment arm and analysis window."
+    sql_example: "MAX(CASE WHEN event_name='length_of_stay' THEN value END) per patient"
+
+  - name: followup_completion_rate
+    description: "Share of patients with at least one `followup_completed` event."
+    owner: health_analytics
+    dataset: events
+    denominator_definition: "Distinct patients in selected experiment arm and analysis window."
+    sql_example: "SUM(CASE WHEN event_name='followup_completed' THEN 1 ELSE 0 END) > 0 per patient"

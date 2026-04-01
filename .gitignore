@@ -12,3 +12,5 @@ venv/
 .DS_Store
 *.duckdb
 data/raw/
+.claude/
+CLAUDE.md

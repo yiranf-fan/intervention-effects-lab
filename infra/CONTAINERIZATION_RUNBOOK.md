@@ -39,6 +39,12 @@ make docker-logs
 ### 5) Seed experiment data into DuckDB
 
 ```bash
+make docker-seed-all-domains
+```
+
+If you only want tech-domain data for targeted checks, you can still run:
+
+```bash
 make docker-seed-hillstrom
 ```
 
@@ -55,6 +61,12 @@ make docker-test
 ```
 
 (`docker-test` runs `python -m pytest -q` to ensure execution from the container Python module context.)
+
+Note:
+
+- `make docker-verify` seeds both tech + health domains via `--all-domains` before smoke tests and `docker-test`.
+- It includes smoke checks for both `exp_email` and `health_exp_reminder_30d`.
+- The target exits non-zero on failures and writes logs to `infra/docker_verify_latest.log`.
 
 ### 8) Stop services
 

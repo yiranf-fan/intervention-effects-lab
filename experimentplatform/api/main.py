@@ -9,6 +9,7 @@ from shared.schemas import MetricRequest
 from pydantic import BaseModel
 from experimentplatform.analytics.metrics import compute_ab_metric, list_experiments, required_sample_size
 from experimentplatform.analytics.metrics import MetricsError
+from shared.config.loader import ConfigError, get_experiment_spec, validate_metric_in_registry
 from .logging import get_logger, log_json
 
 logger = get_logger()
@@ -26,6 +27,10 @@ def _cache_key(request: MetricRequest) -> Tuple[Any, ...]:
         request.start_time.isoformat() if request.start_time else None,
         request.end_time.isoformat() if request.end_time else None,
         request.use_cuped,
+        tuple(sorted((request.segment_filters or {}).items())),
+        tuple(request.segment_by or []),
+        request.control_variant,
+        request.treatment_variant,
     )
 
 
@@ -97,6 +102,9 @@ def compute_metrics(request: MetricRequest):
     start_time = time.time()
     cache_key = _cache_key(request)
     try:
+        metric_meta = validate_metric_in_registry(request.metric)
+        experiment_spec = get_experiment_spec(request.experiment_id)
+
         cached = _cache_get(cache_key)
         cache_hit = cached is not None
 
@@ -109,7 +117,36 @@ def compute_metrics(request: MetricRequest):
                 start_time=request.start_time,
                 end_time=request.end_time,
                 use_cuped=request.use_cuped,
+                segment_filters=request.segment_filters,
+                segment_by=request.segment_by,
+                control_variant=request.control_variant,
+                treatment_variant=request.treatment_variant,
+                experiment_spec=experiment_spec,
             )
+
+            result["experiment_spec"] = (
+                {
+                    "experiment_id": experiment_spec.experiment_id,
+                    "domain": experiment_spec.domain,
+                    "owner": experiment_spec.owner,
+                    "primary_metric": experiment_spec.primary_metric,
+                    "guardrail_metrics": [g.name for g in experiment_spec.guardrail_metrics],
+                    "min_run_time_days": experiment_spec.min_run_time_days,
+                    "min_sample_size": experiment_spec.min_sample_size,
+                    "stopping_rule_note": experiment_spec.stopping_rule_note,
+                    "default_control_variant": experiment_spec.default_control_variant,
+                    "default_treatment_variant": experiment_spec.default_treatment_variant,
+                }
+                if experiment_spec
+                else None
+            )
+            result["metric_validation"] = {
+                "metric": request.metric,
+                "registry_found": True,
+                "description": metric_meta.get("description"),
+                "dataset": metric_meta.get("dataset"),
+                "denominator_definition": metric_meta.get("denominator_definition"),
+            }
             _cache_set(cache_key, result)
 
         latency_ms = round((time.time() - start_time) * 1000)
@@ -122,10 +159,13 @@ def compute_metrics(request: MetricRequest):
             experiment_id=request.experiment_id,
             metric=request.metric,
             use_cuped=request.use_cuped,
+            comparison_mode=result.get("comparison_mode"),
             cache_hit=cache_hit,
             latency_ms=latency_ms,
         )
         return result
+    except ConfigError as e:
+        raise MetricsError(str(e))
     except MetricsError as e:
         latency_ms = round((time.time() - start_time) * 1000)
         log_json(

@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Event(BaseModel):
     user_id: str
@@ -32,3 +32,28 @@ class MetricRequest(BaseModel):
     end_time: Optional[datetime] = None
     use_cuped: bool = False
     segment_filters: Optional[Dict[str, Any]] = None  # e.g. {"region": "NA"}
+    segment_by: Optional[List[str]] = None  # e.g. ["region", "device"]
+    control_variant: Optional[str] = None
+    treatment_variant: Optional[str] = None
+
+
+class GuardrailMetricSpec(BaseModel):
+    name: str
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    description: Optional[str] = None
+
+
+class ExperimentSpec(BaseModel):
+    experiment_id: str
+    domain: Optional[str] = None
+    owner: str
+    hypothesis: str
+    primary_metric: str
+    guardrail_metrics: List[GuardrailMetricSpec] = Field(default_factory=list)
+    min_run_time_days: int
+    min_sample_size: int
+    stopping_rule_note: Optional[str] = None
+    expected_split: Optional[Dict[str, float]] = None
+    default_control_variant: Optional[str] = None
+    default_treatment_variant: Optional[str] = None
